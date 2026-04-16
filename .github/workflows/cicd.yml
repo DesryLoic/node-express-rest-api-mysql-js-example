@@ -1,0 +1,29 @@
+name: Deploiement Automatique (CI/CD)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploiement:
+    runs-on: self-hosted
+
+    steps:
+      - name: 1. Récupérer le code source
+        uses: actions/checkout@v3
+
+      - name: 2. Builder l'image Docker
+        run: |
+          sudo docker build -t api-lacets:latest .
+          # On tag l'image avec ton pseudo (modifie si besoin)
+          sudo docker tag api-lacets:latest loicdesry/api-lacets:v1
+
+      - name: 3. Configurer l'infrastructure et Déployer
+        run: |
+          # On déploie d'abord la base de données
+          sudo kubectl apply -f mysql.yaml
+          # On déploie ensuite l'API
+          sudo kubectl apply -f api.yaml
+          # On force Kubernetes à prendre la toute dernière version de l'image
+          sudo kubectl rollout restart deployment api-lacets
